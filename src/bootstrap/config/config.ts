@@ -6,7 +6,8 @@ const requiredKeys: Array<keyof Config> = [
   "PORT",
   "MONGO_URI",
   "OIDC_ISSUER",
-  "OIDC_AUDIENCE"
+  "OIDC_AUDIENCE",
+  "VIRTUALHOST"
 ];
 
 export const loadConfig = (): Config => {
