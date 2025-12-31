@@ -6,6 +6,8 @@ export const configSchema = z.object({
   HOST: z.string().min(1).default("127.0.0.1"),
   PORT: z.coerce.number(),
   MONGO_URI: z.string().min(1),
+  MONGO_DB_NAME: z.string().min(1),
+  MONGO_OPTIONS: z.string().min(1),
   OIDC_ISSUER: z.string().url(),
   OIDC_AUDIENCE: z.string().min(1),
   VIRTUALHOST: z.preprocess(

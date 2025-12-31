@@ -30,6 +30,8 @@ describe("bootstrap config", () => {
       LOG_LEVEL: "debug",
       PORT: "3000",
       MONGO_URI: "mongodb://user:pass@localhost:27017/mydb",
+      MONGO_DB_NAME: "mydb",
+      MONGO_OPTIONS: "directConnection=true",
       OIDC_ISSUER: "https://wso2.example.com/oauth2/token",
       OIDC_AUDIENCE: "my-audience",
       VIRTUALHOST: "api"
@@ -48,6 +50,8 @@ describe("bootstrap config", () => {
       PORT: "3000",
       OIDC_ISSUER: "https://wso2.example.com/oauth2/token",
       OIDC_AUDIENCE: "my-audience",
+      MONGO_DB_NAME: "mydb",
+      MONGO_OPTIONS: "directConnection=true",
       VIRTUALHOST: "api"
     });
 
@@ -60,6 +64,8 @@ describe("bootstrap config", () => {
       LOG_LEVEL: "debug",
       PORT: "not-a-number",
       MONGO_URI: "mongodb://user:pass@localhost:27017/mydb",
+      MONGO_DB_NAME: "mydb",
+      MONGO_OPTIONS: "directConnection=true",
       OIDC_ISSUER: "https://wso2.example.com/oauth2/token",
       OIDC_AUDIENCE: "my-audience",
       VIRTUALHOST: "api"

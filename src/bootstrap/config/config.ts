@@ -5,6 +5,8 @@ const requiredKeys: Array<keyof Config> = [
   "LOG_LEVEL",
   "PORT",
   "MONGO_URI",
+  "MONGO_DB_NAME",
+  "MONGO_OPTIONS",
   "OIDC_ISSUER",
   "OIDC_AUDIENCE",
   "VIRTUALHOST"
