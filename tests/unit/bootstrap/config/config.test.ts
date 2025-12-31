@@ -31,7 +31,8 @@ describe("bootstrap config", () => {
       PORT: "3000",
       MONGO_URI: "mongodb://user:pass@localhost:27017/mydb",
       OIDC_ISSUER: "https://wso2.example.com/oauth2/token",
-      OIDC_AUDIENCE: "my-audience"
+      OIDC_AUDIENCE: "my-audience",
+      VIRTUALHOST: "api"
     });
 
     const config = loadConfig();
@@ -46,7 +47,8 @@ describe("bootstrap config", () => {
       LOG_LEVEL: "debug",
       PORT: "3000",
       OIDC_ISSUER: "https://wso2.example.com/oauth2/token",
-      OIDC_AUDIENCE: "my-audience"
+      OIDC_AUDIENCE: "my-audience",
+      VIRTUALHOST: "api"
     });
 
     expect(() => loadConfig()).toThrow(/MONGO_URI/);
@@ -59,7 +61,8 @@ describe("bootstrap config", () => {
       PORT: "not-a-number",
       MONGO_URI: "mongodb://user:pass@localhost:27017/mydb",
       OIDC_ISSUER: "https://wso2.example.com/oauth2/token",
-      OIDC_AUDIENCE: "my-audience"
+      OIDC_AUDIENCE: "my-audience",
+      VIRTUALHOST: "api"
     });
 
     expect(() => loadConfig()).toThrow(/PORT/);
