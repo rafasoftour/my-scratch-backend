@@ -1,0 +1,19 @@
+{
+  "name": "my-scratch-backend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node -e \"console.log('dev not configured yet')\"",
+    "build": "tsc",
+    "test": "vitest",
+    "test:unit": "vitest --run tests/unit",
+    "test:integration": "vitest --run tests/integration",
+    "test:e2e": "vitest --run tests/e2e",
+    "test:watch": "vitest --watch"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  }
+}
