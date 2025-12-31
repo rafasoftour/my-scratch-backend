@@ -1,4 +1,4 @@
-# SECURITY
+# SECURITY.md
 
 ## 1. Objetivo del documento
 
@@ -8,218 +8,139 @@ Este documento describe las **decisiones de seguridad** del backend y los contro
 - Minimización de superficie de ataque
 - Trazabilidad y auditoría
 
-Este documento complementa a `ARCHITECTURE.md` y no describe detalles de implementación específicos de librerías.
+El backend está **expuesto a Internet** y puede dar acceso a **terceros** autenticados mediante WSO2 (usuarios propios o identidad federada).
+
+Este documento complementa a `ARCHITECTURE.md`, `TESTING.md` y al encaje de cumplimiento definido en `COMPLIANCE.md`.
 
 ---
 
-## 2. Modelo de seguridad general
+## 2. Encaje ENS / NIS2 / OWASP
 
-El backend sigue el principio de **seguridad por diseño**, basado en la separación estricta entre:
+Este proyecto se alinea con:
+- **ENS (Real Decreto 311/2022)** como marco nacional de medidas de seguridad.
+- **NIS2 (Directiva (UE) 2022/2555)** como marco europeo de gestión del riesgo y notificación de incidentes.
+- **OWASP** (Top 10, ASVS, SAMM) como referencia técnica para seguridad de aplicaciones.
 
-- **Autenticación**: delegada a un proveedor externo (WSO2).
-- **Autorización**: gestionada exclusivamente de forma local.
-
-No existe ningún flujo que permita acceso sin cumplir **ambas** condiciones.
-
----
-
-## 3. Autenticación (OIDC con WSO2)
-
-### 3.1 Rol de WSO2
-
-WSO2 actúa únicamente como **Identity Provider (IdP)**:
-
-- Emite tokens OIDC.
-- Gestiona credenciales, MFA y ciclo de vida de identidades.
-- Garantiza la identidad del usuario.
-
-El backend **no**:
-- Almacena contraseñas.
-- Gestiona login.
-- Gestiona usuarios en WSO2.
+Criterio práctico:
+- Adoptamos **OWASP ASVS** como checklist de requisitos verificables (objetivo recomendado: **ASVS L2** por exposición a Internet).
+- Usamos **SAMM** como referencia de madurez (a nivel de proceso/equipo).
 
 ---
 
-### 3.2 Validación del token
-
-Cada request protegida debe incluir un token OIDC válido.
-
-El backend valida como mínimo:
-
-- Firma del token.
-- `iss` (issuer).
-- `aud` (audience).
-- Expiración (`exp`).
-- Integridad del token.
-
-Si la validación falla → **401 Unauthorized**.
-
----
-
-### 3.3 Identificador de usuario (`sub`)
-
-- El claim `sub` se utiliza como **identificador único y estable** del usuario.
-- El backend enlaza el usuario local con WSO2 exclusivamente mediante `sub`.
-- No se utilizan emails, usernames u otros claims como clave primaria.
-
----
-
-## 4. Autorización local
-
-### 4.1 Principio fundamental
-
-> Un usuario autenticado **no implica** un usuario autorizado.
-
-El backend decide el acceso a recursos de forma local y explícita.
-
----
-
-### 4.2 Reglas de autorización
-
-Para conceder acceso deben cumplirse **todas** las condiciones:
-
-1. El token OIDC es válido.
-2. El usuario existe en la base de datos local.
-3. El usuario tiene permiso explícito sobre el recurso solicitado.
-
-Si falla cualquiera de ellas → **403 Forbidden**.
-
----
-
-### 4.3 No auto-provisioning
-
-- No existe creación automática de usuarios locales.
-- No existe sincronización automática con WSO2.
-- El alta de usuarios es manual y controlada.
-
-Esta decisión reduce el riesgo de accesos no deseados por errores de configuración del IdP.
-
----
-
-## 5. Autorización por recursos
-
-- Los permisos se evalúan **por recurso** (por ejemplo, dashboards).
-- No se delega la autorización a sistemas externos (como Metabase).
-- El backend es la **única autoridad** de acceso.
-
-Esto permite:
-- Auditoría centralizada.
-- Políticas homogéneas.
-- Independencia de proveedores externos.
-
----
-
-## 6. Embedding seguro de dashboards
-
-### 6.1 JWT de embedding
-
-Las URLs de embedding se generan mediante JWT firmados por el backend.
-
-Características:
-
-- TTL corto.
-- Claims mínimos necesarios.
-- Firma con secreto gestionado por el backend.
-
----
-
-### 6.2 Restricciones
-
-- El JWT de embedding **no se reutiliza** como token de autenticación.
-- No se expone ningún secreto al cliente.
-- El cliente no puede modificar los parámetros del embed.
-
----
-
-## 7. Gestión de secretos
+## 3. Modelo de seguridad general
 
 Principios:
-
-- Todos los secretos se gestionan mediante variables de entorno.
-- Nunca se versionan en el repositorio.
-- Nunca se devuelven en respuestas HTTP.
-- Nunca se registran en logs.
-
-Incluye:
-- Secretos JWT.
-- Credenciales de MongoDB.
-- Claves de integración con Metabase.
-- Configuración de WSO2.
+- **Deny by default**.
+- **Autenticación delegada** a WSO2 (OIDC), **autorización local** en el backend.
+- **Defensa en profundidad** (controles en aplicación + refuerzos en infraestructura).
+- **Minimización**: solo se manejan claims/datos necesarios.
+- **Trazabilidad**: toda llamada relevante debe ser auditable.
+- Separación estricta de responsabilidades por capas (Clean Architecture).
 
 ---
 
-## 8. Logging y auditoría
+## 4. Autenticación (OIDC / WSO2)
 
-### 8.1 Objetivos
+El backend valida tokens OIDC/JWT emitidos por WSO2.
 
-- Trazabilidad de accesos.
-- Detección de usos indebidos.
-- Soporte a auditorías.
+Validaciones mínimas:
+- Firma (JWKS / claves rotables)
+- `iss` (issuer) esperado
+- `aud` (audience) esperado
+- `exp` (caducidad)
+- Allowlist de algoritmos aceptados
 
----
-
-### 8.2 Contenido de logs
-
-Los logs pueden incluir:
-
-- `requestId`
-- `sub`
-- `userId` local
-- Recurso accedido
-- Acción realizada
-- Resultado (permitido / denegado)
-
-No se registran:
-- Tokens OIDC completos.
-- JWT de embedding.
-- Cabeceras sensibles.
-- Secretos.
+El `sub` del token se considera el identificador unívoco de identidad para enlazar con el usuario local.
 
 ---
 
-## 9. Manejo de errores y exposición de información
+## 5. Autorización (decisión local)
 
-Principios:
+El backend **no confía ciegamente** en roles/grupos externos para autorizar recursos internos.
+Cualquier dato externo debe pasar por un **mapping / modelo de permisos local**.
 
-- Los mensajes de error son **genéricos**.
-- No se filtra información interna.
-- No se revela si un recurso existe cuando el usuario no está autorizado.
-
-Ejemplo:
-- Usuario sin permiso → siempre **403**, independientemente de la existencia del recurso.
-
----
-
-## 10. Superficie de ataque minimizada
-
-Decisiones explícitas:
-
-- No endpoints públicos sin autenticación.
-- No auto-descubrimiento de recursos.
-- No lógica de permisos en frontend.
-- No dependencia de claims externos para autorización.
+Reglas:
+- Denegar por defecto.
+- Centralizar decisiones en la capa `application`.
+- `presentation` solo traduce (HTTP), no decide permisos.
 
 ---
 
-## 11. Defensa en profundidad
+## 6. Integridad del usuario (`sub` único)
 
-La seguridad se apoya en múltiples capas:
+Motivo:
+- Evitar ambigüedad: un `sub` debe referir a un único usuario local.
 
-- Validación de tokens.
-- Autorización local.
-- TTL corto en embeds.
-- Logging centralizado.
-- Separación estricta de responsabilidades.
+Implementación (defensa en profundidad):
+- En `application`: pre-check + error controlado (409) si existe.
+- En `infrastructure`: índice único en DB y traducción de error de DB a error de aplicación.
 
 ---
 
-## 12. Evolución y revisiones
+## 7. Seguridad HTTP (API expuesta a Internet)
 
-Este documento deberá revisarse cuando:
+Controles recomendados/obligatorios:
+- CORS con allowlist (por entorno).
+- Rate limiting (global y/o por ruta).
+- Cabeceras de seguridad (p.ej. helmet).
+- Límite de payload y límites de recursos.
+- Timeouts razonables.
+- Sanitización/validación de entradas (schema validation).
 
+---
+
+## 8. Gestión de secretos
+
+- Ningún secreto se versiona en el repositorio.
+- En producción: secrets vía mecanismo corporativo (CI/secret manager).
+- Rotación planificada de secretos y claves de firma.
+
+---
+
+## 9. Logging, auditoría y privacidad
+
+- Logging estructurado con `requestId`.
+- Auditoría de accesos: `sub`, recurso, decisión (permitido/denegado), timestamp.
+- No loguear secretos ni datos sensibles innecesarios.
+- Asegurar correlación y retención conforme a políticas corporativas.
+
+---
+
+## 10. Dependencias y supply chain
+
+- Actualizaciones regulares de dependencias.
+- Escaneo de dependencias (p.ej. `npm audit` en CI).
+- Revisión explícita de cambios de librerías críticas (auth/crypto/http).
+
+---
+
+## 11. Testing de seguridad
+
+Los tests son parte del control de seguridad:
+- Unit tests: reglas de autorización, TTL de tokens firmados, invariantes de dominio.
+- Integration tests: repositorios e índices, validación de rutas, hardening básico.
+- E2E: flujos críticos de acceso.
+
+Ver `TESTING.md`.
+
+---
+
+## 12. Respuesta a incidentes
+
+Existe un procedimiento mínimo en `INCIDENT_RESPONSE.md`.
+Cualquier cambio relevante de seguridad debe actualizar también:
+- `THREAT_MODEL.md`
+- `COMPLIANCE.md`
+
+---
+
+## 13. Evolución y revisiones
+
+Revisar este documento cuando:
 - Se añadan nuevos proveedores de dashboards.
 - Se incorporen flujos administrativos.
-- Se introduzcan cambios en el modelo de permisos.
-- Se modifique la estrategia de autenticación.
+- Se modifique el modelo de permisos.
+- Se introduzcan cambios en autenticación/cripto.
+- Se amplíe exposición a terceros o nuevos entornos.
 
 La seguridad se considera un **requisito continuo**, no un estado final.

@@ -1,158 +1,115 @@
-# ARCHITECTURE
+# ARCHITECTURE.md
 
 ## 1. Propósito del backend
 
-Este backend actúa como **punto único de acceso seguro** para un portal de informes corporativo que proporciona acceso controlado a dashboards analíticos (actualmente Metabase, con posibilidad de extenderse a otros proveedores en el futuro).
+Este backend actúa como **punto único de acceso seguro** para un portal de informes corporativo que proporciona acceso controlado a dashboards analíticos.
 
 Sus responsabilidades principales son:
 
-- Autenticar usuarios mediante **WSO2 como Identity Provider (OIDC)**.
-- Autorizar el acceso a recursos de forma **local**, basada en usuarios, roles y permisos almacenados en la aplicación.
-- Generar **URLs de embedding firmadas** (JWT de corta duración) para dashboards.
-- Registrar accesos y eventos relevantes mediante **logging estructurado** y envío a **Graylog**.
-
-Fuera de alcance en esta fase:
-
-- Alta o sincronización automática de usuarios desde WSO2.
-- Gestión de identidades en WSO2.
-- Lógica BI o consultas de datos.
-- Interfaz de usuario o frontend.
+- Autenticar usuarios mediante **OIDC (WSO2)**.
+- Autorizar el acceso a recursos de forma **local**.
+- Generar URLs de embedding firmadas.
+- Registrar accesos y eventos relevantes.
 
 ---
 
 ## 2. Principios arquitectónicos
 
-El diseño del backend se rige por los siguientes principios:
+El diseño del backend se rige por:
 
-- **Clean Architecture**, separando claramente responsabilidades y dependencias.
-- **Regla de dependencias**: las dependencias siempre apuntan hacia el núcleo.
-- **API-first**: la API pública está definida por un contrato explícito (OpenAPI).
-- **Seguridad por diseño**: autenticación delegada, autorización local estricta.
-- **Separación entre identidad y acceso**:
-  - WSO2 autentica.
-  - El backend decide si un usuario tiene acceso.
-- **Observabilidad y auditabilidad** como requisitos de primer nivel.
+- **Clean Architecture**
+- **Regla de dependencias** (hacia el núcleo)
+- **API-first**
+- **Seguridad por diseño**
+- **Testabilidad por diseño**
 
 ---
 
-## 3. Stack tecnológico (decisiones cerradas)
-
-- Runtime: **Node.js**
-- Lenguaje: **TypeScript**
-- Framework HTTP: **Fastify**
-- Persistencia: **MongoDB**, accedido exclusivamente mediante **Mongoose**
-- Logging: **Pino** (Fastify nativo)
-- Centralización de logs: **Graylog (GELF)**
-
-No se introducirá ninguna librería adicional sin una justificación explícita documentada.
-
----
-
-## 4. Arquitectura en capas (Clean Architecture)
-
-El backend se organiza en cuatro capas claramente diferenciadas:
+## 3. Arquitectura en capas
 
 presentation → application → domain  
                     ↑  
               infrastructure
 
-Las capas externas dependen de las internas y las capas internas no conocen los detalles de las externas.
+Las capas externas dependen de las internas. Las internas no conocen las externas.
 
 ---
 
-## 5. Capas
+## 4. Capas
 
 ### Domain
 
-Representa el núcleo del negocio: entidades, reglas, invariantes y errores de dominio.  
-No conoce frameworks, base de datos ni HTTP.
+- Entidades y reglas de negocio.
+- Invariantes.
+- Value Objects.
+- Errores de dominio.
+
+El dominio **no representa la base de datos** ni modelos de persistencia.
+
+---
 
 ### Application
 
-Orquesta los casos de uso. Define puertos (interfaces), DTOs y errores de aplicación.  
-No conoce detalles técnicos.
+- Casos de uso.
+- Puertos (interfaces).
+- Orquestación de flujos.
+
+Define **qué necesita** del exterior, no **cómo se implementa**.
+
+---
 
 ### Infrastructure
 
-Implementa dependencias externas: MongoDB (Mongoose), Metabase, logging, configuración técnica.  
-Mongoose solo existe en esta capa.
+- Implementaciones técnicas:
+  - MongoDB / Mongoose
+  - Integraciones externas
+- Modelos de persistencia.
+- Índices, timestamps, configuración técnica.
+
+Puede contener datos que **no existen en el dominio** (ej. `createdAt`, `updatedAt`).
+
+---
 
 ### Presentation
 
-Expone la API HTTP con Fastify. Traduce HTTP ⇄ casos de uso, gestiona autenticación y errores.
+- HTTP / Fastify.
+- Rutas.
+- Traducción HTTP ⇄ casos de uso.
+- Manejo de errores y status codes.
+
+No contiene lógica de negocio.
 
 ---
 
-## 6. API-first y OpenAPI
+## 5. Composition Root
 
-La API pública se define mediante un contrato **OpenAPI**, que es la fuente de verdad de rutas, esquemas y códigos de error.  
-El contrato no contiene lógica de negocio. El tooling asociado se documenta fuera de este archivo.
+El **composition root** es el punto donde se conectan todas las capas.
 
----
+Características:
+- Crea implementaciones concretas.
+- Inyecta dependencias.
+- Lee configuración.
+- Registra adaptadores.
 
-## 7. Autenticación y autorización
+Ejemplo:
+- `server.ts`
 
-- Autenticación mediante **WSO2 (OIDC)**.
-- Identidad local ligada al claim **sub**.
-- Si un usuario autenticado no existe localmente → **403 Forbidden**.
-- No existe auto-provisioning.
-
----
-
-## 8. Flujo típico de acceso a dashboard
-
-1. Request con token OIDC válido.
-2. Validación del token y extracción de `sub`.
-3. Búsqueda de usuario local.
-4. Verificación de permisos.
-5. Generación de URL de embed firmada (JWT corto).
-6. Respuesta al cliente y registro de auditoría.
+El composition root **no pertenece** a ninguna capa de Clean Architecture.
 
 ---
 
-## 9. Gestión de configuración
+## 6. Testing
 
-- Configuración vía variables de entorno.
-- Validación en arranque (fail fast).
-- El dominio y la aplicación no acceden a `process.env`.
+El sistema adopta una estrategia de testing explícita y obligatoria definida en `TESTING.md`.
 
----
+- Unit tests protegen el núcleo.
+- Integration tests validan adaptadores.
+- E2E tests validan el sistema completo.
 
-## 10. Manejo de errores
-
-| Situación                | Código  |
-| ------------------------ | ------- |
-| Token inválido / ausente | 401     |
-| Usuario no existente     | 403     |
-| Sin permisos             | 403     |
-| Recurso inexistente      | 404     |
-| Error externo            | 502/503 |
+La testabilidad es un requisito arquitectónico.
 
 ---
 
-## 11. Observabilidad y logging
+## 7. Regla final
 
-- Logs estructurados en JSON.
-- Inclusión de requestId, sub, userId y recurso.
-- No se loguean tokens ni secretos.
-
----
-
-## 12. Seguridad
-
-- Autorización local estricta.
-- JWT de embed con TTL corto y claims mínimos.
-- Principio de mínimo privilegio.
-
-Los detalles completos se documentan en SECURITY.md.
-
----
-
-## 13. Evolución prevista
-
-Arquitectura preparada para:
-
-- Nuevos proveedores de dashboards.
-- Backend administrativo.
-- Auditoría persistente.
-- Caching controlado si se justifica.
+> **La arquitectura se valida tanto por el código como por los tests.**
