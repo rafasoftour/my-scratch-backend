@@ -10,8 +10,8 @@ const sendError = (
     error: {
       statusCode,
       code,
-      message
-    }
+      message,
+    },
   });
 };
 
@@ -27,10 +27,29 @@ export const errorHandler = (
   _request: FastifyRequest,
   reply: FastifyReply
 ) => {
+  if (reply.sent) {
+    return;
+  }
+
   if (error.statusCode && error.statusCode >= 400 && error.statusCode < 500) {
-    const code = error.statusCode === 404 ? "NOT_FOUND" : "BAD_REQUEST";
-    const message = error.statusCode === 404 ? "Not Found" : "Bad Request";
-    sendError(reply, error.statusCode, code, message);
+    if (error.statusCode === 404) {
+      return;
+    }
+
+    const statusCode = error.statusCode;
+    const mapping: Record<number, { code: string; message: string }> = {
+      400: { code: "BAD_REQUEST", message: "Bad Request" },
+      401: { code: "UNAUTHORIZED", message: "Unauthorized" },
+      403: { code: "FORBIDDEN", message: "Forbidden" },
+      429: { code: "TOO_MANY_REQUESTS", message: "Too Many Requests" }
+    };
+
+    const mapped = mapping[statusCode] ?? {
+      code: "CLIENT_ERROR",
+      message: "Client Error"
+    };
+
+    sendError(reply, statusCode, mapped.code, mapped.message);
     return;
   }
 
