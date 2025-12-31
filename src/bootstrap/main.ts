@@ -1,10 +1,16 @@
 import "./env.js";
 import { config } from "./config/index.js";
+import { CreateUser } from "../application/users/CreateUser.js";
+import { connectMongo } from "../infrastructure/persistence/mongoose/connection.js";
+import { MongoUserRepository } from "../infrastructure/persistence/mongoose/MongoUserRepository.js";
 import { buildServer } from "../presentation/http/server.js";
 
 try {
   console.log(`base path: /${config.VIRTUALHOST}`);
-  const server = await buildServer(config);
+  await connectMongo(config);
+  const userRepository = new MongoUserRepository();
+  const createUser = new CreateUser(userRepository);
+  const server = await buildServer(config, { createUser });
   await server.listen({
     host: config.HOST,
     port: config.PORT

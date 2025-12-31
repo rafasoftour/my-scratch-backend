@@ -1,5 +1,7 @@
 import { afterAll, describe, expect, it } from "vitest";
+import { CreateUser } from "../../../src/application/users/CreateUser.js";
 import { buildServer } from "../../../src/presentation/http/server.js";
+import { InMemoryUserRepository } from "../../helpers/fakes/InMemoryUserRepository.js";
 
 describe("error handler", () => {
   const config = {
@@ -22,7 +24,8 @@ describe("error handler", () => {
   });
 
   it("returns 404 with standard payload", async () => {
-    server = await buildServer(config);
+    const createUser = new CreateUser(new InMemoryUserRepository());
+    server = await buildServer(config, { createUser });
 
     const response = await server.inject({
       method: "GET",
@@ -40,7 +43,8 @@ describe("error handler", () => {
   });
 
   it("returns 500 with standard payload", async () => {
-    server = await buildServer(config);
+    const createUser = new CreateUser(new InMemoryUserRepository());
+    server = await buildServer(config, { createUser });
 
     await server.register(
       async (instance) => {

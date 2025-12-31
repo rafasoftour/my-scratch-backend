@@ -1,17 +1,20 @@
 import { randomUUID } from "node:crypto";
 import Fastify from "fastify";
-import { CreateUser } from "../../application/users/CreateUser.js";
 import { errorHandler, notFoundHandler } from "./errors/error-handler.js";
-import { InMemoryUserRepository } from "./fakes/InMemoryUserRepository.js";
 import { registerRequestLogger } from "./plugins/request-logger.js";
 import { registerHealthRoutes } from "./routes/health.routes.js";
 import { registerUsersRoutes } from "./routes/users.routes.js";
+import type { CreateUser } from "../../application/users/CreateUser.js";
 
 type ServerConfig = {
   VIRTUALHOST: string;
 } & Record<string, unknown>;
 
-export const buildServer = async (config: ServerConfig) => {
+type ServerDeps = {
+  createUser: CreateUser;
+};
+
+export const buildServer = async (config: ServerConfig, deps: ServerDeps) => {
   const server = Fastify({
     logger: true,
     requestIdHeader: "x-request-id",
@@ -22,16 +25,13 @@ export const buildServer = async (config: ServerConfig) => {
   server.setNotFoundHandler(notFoundHandler);
   server.setErrorHandler(errorHandler);
 
-  const userRepository = new InMemoryUserRepository();
-  const createUser = new CreateUser(userRepository);
-
   await server.register(registerHealthRoutes, {
     prefix: `/${config.VIRTUALHOST}`
   });
 
   await server.register(registerUsersRoutes, {
     prefix: `/${config.VIRTUALHOST}/users`,
-    createUser
+    createUser: deps.createUser
   });
 
   return server;

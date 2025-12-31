@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { CreateUser } from "../../../src/application/users/CreateUser.js";
 import { buildServer } from "../../../src/presentation/http/server.js";
+import { InMemoryUserRepository } from "../../helpers/fakes/InMemoryUserRepository.js";
 
 describe("users routes", () => {
   const config = {
@@ -14,7 +16,8 @@ describe("users routes", () => {
   };
 
   it("creates user without sub", async () => {
-    const server = await buildServer(config);
+    const createUser = new CreateUser(new InMemoryUserRepository());
+    const server = await buildServer(config, { createUser });
     try {
       const response = await server.inject({
         method: "POST",
@@ -38,7 +41,8 @@ describe("users routes", () => {
   });
 
   it("creates user with sub", async () => {
-    const server = await buildServer(config);
+    const createUser = new CreateUser(new InMemoryUserRepository());
+    const server = await buildServer(config, { createUser });
     try {
       const response = await server.inject({
         method: "POST",
@@ -60,7 +64,8 @@ describe("users routes", () => {
   });
 
   it("returns standard error when sub already exists", async () => {
-    const server = await buildServer(config);
+    const createUser = new CreateUser(new InMemoryUserRepository());
+    const server = await buildServer(config, { createUser });
     try {
       await server.inject({
         method: "POST",

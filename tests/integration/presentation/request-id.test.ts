@@ -1,5 +1,7 @@
 import { afterAll, describe, expect, it } from "vitest";
+import { CreateUser } from "../../../src/application/users/CreateUser.js";
 import { buildServer } from "../../../src/presentation/http/server.js";
+import { InMemoryUserRepository } from "../../helpers/fakes/InMemoryUserRepository.js";
 
 describe("request id", () => {
   const config = {
@@ -22,7 +24,8 @@ describe("request id", () => {
   });
 
   it("returns x-request-id header when not provided", async () => {
-    server = await buildServer(config);
+    const createUser = new CreateUser(new InMemoryUserRepository());
+    server = await buildServer(config, { createUser });
 
     const response = await server.inject({
       method: "GET",
@@ -35,7 +38,8 @@ describe("request id", () => {
   });
 
   it("preserves incoming x-request-id header", async () => {
-    server = await buildServer(config);
+    const createUser = new CreateUser(new InMemoryUserRepository());
+    server = await buildServer(config, { createUser });
 
     const response = await server.inject({
       method: "GET",

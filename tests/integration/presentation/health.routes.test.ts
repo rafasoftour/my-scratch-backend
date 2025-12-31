@@ -1,5 +1,7 @@
 import { afterAll, describe, expect, it } from "vitest";
+import { CreateUser } from "../../../src/application/users/CreateUser.js";
 import { buildServer } from "../../../src/presentation/http/server.js";
+import { InMemoryUserRepository } from "../../helpers/fakes/InMemoryUserRepository.js";
 
 describe("health routes", () => {
   const config = {
@@ -22,7 +24,8 @@ describe("health routes", () => {
   });
 
   it("GET /api/health returns 200", async () => {
-    server = await buildServer(config);
+    const createUser = new CreateUser(new InMemoryUserRepository());
+    server = await buildServer(config, { createUser });
 
     const response = await server.inject({
       method: "GET",
@@ -34,7 +37,8 @@ describe("health routes", () => {
   });
 
   it("GET /health returns 404 (prefix required)", async () => {
-    server = await buildServer(config);
+    const createUser = new CreateUser(new InMemoryUserRepository());
+    server = await buildServer(config, { createUser });
 
     const response = await server.inject({
       method: "GET",
