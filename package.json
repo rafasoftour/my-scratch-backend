@@ -3,14 +3,17 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "npm run build && node -e \"process.env.NODE_ENV='development'; import('./dist/bootstrap/main.js')\"",
+    "dev": "npm run dev:dist",
+    "dev:dist": "npm run build && node -e \"process.env.NODE_ENV='development'; import('./dist/src/bootstrap/main.js')\"",
+    "dev:watch:build": "tsc -w",
+    "dev:watch:run": "node --watch dist/src/bootstrap/main.js",
     "build": "tsc",
     "test": "vitest --run",
     "test:unit": "vitest --run tests/unit",
     "test:integration": "vitest --run tests/integration",
     "test:e2e": "vitest --run tests/e2e",
     "test:watch": "vitest --watch",
-    "start": "node dist/bootstrap/main.js"
+    "start": "node dist/src/bootstrap/main.js"
   },
   "dependencies": {
     "dotenv": "^16.4.0",
