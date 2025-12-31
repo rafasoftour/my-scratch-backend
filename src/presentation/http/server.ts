@@ -15,7 +15,7 @@ export const buildServer = async (config: ServerConfig) => {
     genReqId: () => randomUUID()
   });
 
-  await server.register(registerRequestLogger);
+  await registerRequestLogger(server);
   server.setNotFoundHandler(notFoundHandler);
   server.setErrorHandler(errorHandler);
 
