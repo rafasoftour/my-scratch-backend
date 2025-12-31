@@ -61,4 +61,28 @@ describe("MongoUserRepository", () => {
     const found = await repo.findBySub(UserSub.create("missing-sub"));
     expect(found).toBeNull();
   });
+
+  it("save upserts existing user", async () => {
+    const userId = UserId.create("550e8400-e29b-41d4-a716-446655440002");
+    const user = User.create({
+      id: userId,
+      displayName: "Alice",
+      sub: UserSub.create("oidc-sub-1"),
+      isActive: true
+    });
+
+    await repo.save(user);
+
+    const updated = User.create({
+      id: userId,
+      displayName: "Alice Updated",
+      sub: UserSub.create("oidc-sub-1"),
+      isActive: true
+    });
+
+    await repo.save(updated);
+
+    const persisted = await UserModel.findById(userId.toString()).lean();
+    expect(persisted?.displayName).toBe("Alice Updated");
+  });
 });

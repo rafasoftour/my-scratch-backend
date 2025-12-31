@@ -1,4 +1,4 @@
-import { model, Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 export type UserDocument = {
   _id: string;
@@ -11,10 +11,13 @@ const userSchema = new Schema<UserDocument>(
   {
     _id: { type: String, required: true },
     displayName: { type: String, required: true },
-    sub: { type: String, required: false, unique: true, sparse: true },
+    sub: { type: String, required: false },
     isActive: { type: Boolean, required: true }
   },
   { collection: "users" }
 );
 
-export const UserModel = model<UserDocument>("User", userSchema);
+userSchema.index({ sub: 1 }, { unique: true, sparse: true });
+
+export const UserModel =
+  mongoose.models.User || mongoose.model<UserDocument>("User", userSchema);
