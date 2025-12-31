@@ -3,13 +3,18 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node -e \"console.log('dev not configured yet')\"",
+    "dev": "npm run build && node -e \"process.env.NODE_ENV='development'; import('./dist/bootstrap/main.js')\"",
     "build": "tsc",
-    "test": "vitest",
+    "test": "vitest --run",
     "test:unit": "vitest --run tests/unit",
     "test:integration": "vitest --run tests/integration",
     "test:e2e": "vitest --run tests/e2e",
-    "test:watch": "vitest --watch"
+    "test:watch": "vitest --watch",
+    "start": "node dist/bootstrap/main.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.0",
+    "zod": "^3.22.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
