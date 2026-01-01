@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CreateUser } from "../../../src/application/users/CreateUser.js";
+import { GetUserById } from "../../../src/application/users/GetUserById.js";
 import { buildServer } from "../../../src/presentation/http/server.js";
 import { InMemoryUserRepository } from "../../helpers/fakes/InMemoryUserRepository.js";
 
@@ -16,8 +17,10 @@ describe("users routes", () => {
   };
 
   const buildTestServer = async () => {
-    const createUser = new CreateUser(new InMemoryUserRepository());
-    return buildServer(config, { createUser });
+    const repo = new InMemoryUserRepository();
+    const createUser = new CreateUser(repo);
+    const getUserById = new GetUserById(repo);
+    return buildServer(config, { createUser, getUserById });
   };
 
   it("creates user without sub", async () => {
@@ -87,6 +90,54 @@ describe("users routes", () => {
           statusCode: 409,
           code: "USER_ALREADY_EXISTS",
           message: "User already exists"
+        }
+      });
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("gets user by id", async () => {
+    const server = await buildTestServer();
+    try {
+      const created = await server.inject({
+        method: "POST",
+        url: "/api/users",
+        payload: { displayName: "Carol", sub: "oidc-sub-2" }
+      });
+
+      const createdBody = created.json() as { id: string };
+      const response = await server.inject({
+        method: "GET",
+        url: `/api/users/${createdBody.id}`
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.json()).toEqual({
+        id: createdBody.id,
+        displayName: "Carol",
+        sub: "oidc-sub-2",
+        isActive: true
+      });
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("returns 404 when user id does not exist", async () => {
+    const server = await buildTestServer();
+    try {
+      const response = await server.inject({
+        method: "GET",
+        url: "/api/users/550e8400-e29b-41d4-a716-446655440099"
+      });
+
+      expect(response.statusCode).toBe(404);
+      expect(response.json()).toEqual({
+        error: {
+          statusCode: 404,
+          code: "USER_NOT_FOUND",
+          message: "User not found"
         }
       });
     } finally {

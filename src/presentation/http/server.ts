@@ -5,6 +5,7 @@ import { registerRequestLogger } from "./plugins/request-logger.js";
 import { registerHealthRoutes } from "./routes/health.routes.js";
 import { registerUsersRoutes } from "./routes/users.routes.js";
 import type { CreateUser } from "../../application/users/CreateUser.js";
+import type { GetUserById } from "../../application/users/GetUserById.js";
 
 type ServerConfig = {
   VIRTUALHOST: string;
@@ -12,6 +13,7 @@ type ServerConfig = {
 
 type ServerDeps = {
   createUser: CreateUser;
+  getUserById: GetUserById;
 };
 
 export const buildServer = async (config: ServerConfig, deps: ServerDeps) => {
@@ -31,7 +33,8 @@ export const buildServer = async (config: ServerConfig, deps: ServerDeps) => {
 
   await server.register(registerUsersRoutes, {
     prefix: `/${config.VIRTUALHOST}/users`,
-    createUser: deps.createUser
+    createUser: deps.createUser,
+    getUserById: deps.getUserById
   });
 
   return server;

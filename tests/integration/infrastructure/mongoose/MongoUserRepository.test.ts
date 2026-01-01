@@ -62,6 +62,27 @@ describe("MongoUserRepository", () => {
     expect(found).toBeNull();
   });
 
+  it("findById returns user", async () => {
+    const user = User.create({
+      id: UserId.create("550e8400-e29b-41d4-a716-446655440003"),
+      displayName: "Bob",
+      sub: UserSub.create("oidc-sub-2"),
+      isActive: true
+    });
+
+    await repo.save(user);
+
+    const found = await repo.findById(UserId.create(user.id.toString()));
+    expect(found?.displayName).toBe("Bob");
+  });
+
+  it("findById returns null when missing", async () => {
+    const found = await repo.findById(
+      UserId.create("550e8400-e29b-41d4-a716-446655440004")
+    );
+    expect(found).toBeNull();
+  });
+
   it("save upserts existing user", async () => {
     const userId = UserId.create("550e8400-e29b-41d4-a716-446655440002");
     const user = User.create({
