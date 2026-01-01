@@ -83,6 +83,19 @@ describe("MongoUserRepository", () => {
     expect(found).toBeNull();
   });
 
+  it("save persists inactive user", async () => {
+    const user = User.create({
+      id: UserId.create("550e8400-e29b-41d4-a716-446655440005"),
+      displayName: "Inactive",
+      isActive: false
+    });
+
+    await repo.save(user);
+
+    const found = await repo.findById(UserId.create(user.id.toString()));
+    expect(found?.isActive).toBe(false);
+  });
+
   it("save upserts existing user", async () => {
     const userId = UserId.create("550e8400-e29b-41d4-a716-446655440002");
     const user = User.create({
