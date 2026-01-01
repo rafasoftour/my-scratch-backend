@@ -15,9 +15,13 @@ describe("users routes", () => {
     VIRTUALHOST: "api"
   };
 
-  it("creates user without sub", async () => {
+  const buildTestServer = async () => {
     const createUser = new CreateUser(new InMemoryUserRepository());
-    const server = await buildServer(config, { createUser });
+    return buildServer(config, { createUser });
+  };
+
+  it("creates user without sub", async () => {
+    const server = await buildTestServer();
     try {
       const response = await server.inject({
         method: "POST",
@@ -41,8 +45,7 @@ describe("users routes", () => {
   });
 
   it("creates user with sub", async () => {
-    const createUser = new CreateUser(new InMemoryUserRepository());
-    const server = await buildServer(config, { createUser });
+    const server = await buildTestServer();
     try {
       const response = await server.inject({
         method: "POST",
@@ -64,8 +67,7 @@ describe("users routes", () => {
   });
 
   it("returns standard error when sub already exists", async () => {
-    const createUser = new CreateUser(new InMemoryUserRepository());
-    const server = await buildServer(config, { createUser });
+    const server = await buildTestServer();
     try {
       await server.inject({
         method: "POST",
@@ -83,8 +85,8 @@ describe("users routes", () => {
       expect(response.json()).toEqual({
         error: {
           statusCode: 409,
-          code: "CLIENT_ERROR",
-          message: "Client Error"
+          code: "USER_ALREADY_EXISTS",
+          message: "User already exists"
         }
       });
     } finally {

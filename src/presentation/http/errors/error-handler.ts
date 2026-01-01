@@ -1,3 +1,4 @@
+import { UserAlreadyExistsError } from "../../../application/users/errors.js";
 import type { FastifyError, FastifyReply, FastifyRequest } from "fastify";
 
 const sendError = (
@@ -28,6 +29,11 @@ export const errorHandler = (
   reply: FastifyReply
 ) => {
   if (reply.sent) {
+    return;
+  }
+
+  if (error instanceof UserAlreadyExistsError) {
+    sendError(reply, 409, "USER_ALREADY_EXISTS", error.message);
     return;
   }
 

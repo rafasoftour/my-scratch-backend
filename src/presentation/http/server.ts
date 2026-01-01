@@ -8,7 +8,7 @@ import type { CreateUser } from "../../application/users/CreateUser.js";
 
 type ServerConfig = {
   VIRTUALHOST: string;
-} & Record<string, unknown>;
+};
 
 type ServerDeps = {
   createUser: CreateUser;
