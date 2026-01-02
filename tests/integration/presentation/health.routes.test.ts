@@ -1,7 +1,10 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { CreateUser } from "../../../src/application/users/CreateUser.js";
+import { DeleteUser } from "../../../src/application/users/DeleteUser.js";
 import { GetUserById } from "../../../src/application/users/GetUserById.js";
+import { UpdateUser } from "../../../src/application/users/UpdateUser.js";
 import { buildServer } from "../../../src/presentation/http/server.js";
+import { buildTestLogger } from "../../helpers/buildTestLogger.js";
 import { InMemoryUserRepository } from "../../helpers/fakes/InMemoryUserRepository.js";
 
 describe("health routes", () => {
@@ -27,8 +30,14 @@ describe("health routes", () => {
   it("GET /api/health returns 200", async () => {
     const repo = new InMemoryUserRepository();
     const createUser = new CreateUser(repo);
+    const deleteUser = new DeleteUser(repo);
     const getUserById = new GetUserById(repo);
-    server = await buildServer(config, { createUser, getUserById });
+    const updateUser = new UpdateUser(repo);
+    server = await buildServer(
+      config,
+      { createUser, deleteUser, getUserById, updateUser },
+      buildTestLogger()
+    );
 
     const response = await server.inject({
       method: "GET",
@@ -42,8 +51,14 @@ describe("health routes", () => {
   it("GET /health returns 404 (prefix required)", async () => {
     const repo = new InMemoryUserRepository();
     const createUser = new CreateUser(repo);
+    const deleteUser = new DeleteUser(repo);
     const getUserById = new GetUserById(repo);
-    server = await buildServer(config, { createUser, getUserById });
+    const updateUser = new UpdateUser(repo);
+    server = await buildServer(
+      config,
+      { createUser, deleteUser, getUserById, updateUser },
+      buildTestLogger()
+    );
 
     const response = await server.inject({
       method: "GET",

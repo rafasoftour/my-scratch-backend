@@ -10,6 +10,11 @@ export const configSchema = z.object({
   MONGO_OPTIONS: z.string().min(1),
   OIDC_ISSUER: z.string().url(),
   OIDC_AUDIENCE: z.string().min(1),
+  GRAYLOG_ENABLED: z.coerce.boolean().default(false),
+  GRAYLOG_HOSTNAME: z.string().min(1).optional(),
+  GRAYLOG_HOST: z.string().min(1).optional(),
+  GRAYLOG_PORT: z.coerce.number().optional(),
+  GRAYLOG_USESSL: z.coerce.boolean().default(false),
   VIRTUALHOST: z.preprocess(
     (value) =>
       typeof value === "string" ? value.replace(/^\/+|\/+$/g, "") : value,
@@ -19,6 +24,34 @@ export const configSchema = z.object({
       .max(50)
       .regex(/^[A-Za-z0-9-_]+$/)
   )
+}).superRefine((data, context) => {
+  if (!data.GRAYLOG_ENABLED) {
+    return;
+  }
+
+  if (!data.GRAYLOG_HOSTNAME) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["GRAYLOG_HOSTNAME"],
+      message: "GRAYLOG_HOSTNAME is required when GRAYLOG_ENABLED is true"
+    });
+  }
+
+  if (!data.GRAYLOG_HOST) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["GRAYLOG_HOST"],
+      message: "GRAYLOG_HOST is required when GRAYLOG_ENABLED is true"
+    });
+  }
+
+  if (data.GRAYLOG_PORT === undefined || Number.isNaN(data.GRAYLOG_PORT)) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["GRAYLOG_PORT"],
+      message: "GRAYLOG_PORT is required when GRAYLOG_ENABLED is true"
+    });
+  }
 });
 
 export type Config = z.infer<typeof configSchema>;

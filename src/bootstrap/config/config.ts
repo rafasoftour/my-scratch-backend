@@ -1,6 +1,6 @@
 import { configSchema, type Config } from "./config.schema.js";
 
-const requiredKeys: Array<keyof Config> = [
+const baseRequiredKeys: Array<keyof Config> = [
   "NODE_ENV",
   "LOG_LEVEL",
   "PORT",
@@ -12,8 +12,19 @@ const requiredKeys: Array<keyof Config> = [
   "VIRTUALHOST"
 ];
 
+const isEnabled = (value: string | undefined) =>
+  value === "true" || value === "1" || value === "yes";
+
 export const loadConfig = (): Config => {
   const raw = process.env;
+  const requiredKeys = [
+    ...baseRequiredKeys,
+    ...(isEnabled(raw.GRAYLOG_ENABLED)
+      ? (["GRAYLOG_HOSTNAME", "GRAYLOG_HOST", "GRAYLOG_PORT"] as Array<
+          keyof Config
+        >)
+      : [])
+  ];
   const parsed = configSchema.safeParse(raw);
 
   if (!parsed.success) {

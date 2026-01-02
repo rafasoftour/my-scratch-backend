@@ -4,6 +4,7 @@ import { DeleteUser } from "../../../src/application/users/DeleteUser.js";
 import { GetUserById } from "../../../src/application/users/GetUserById.js";
 import { UpdateUser } from "../../../src/application/users/UpdateUser.js";
 import { buildServer } from "../../../src/presentation/http/server.js";
+import { buildTestLogger } from "../../helpers/buildTestLogger.js";
 import { InMemoryUserRepository } from "../../helpers/fakes/InMemoryUserRepository.js";
 
 describe("users routes", () => {
@@ -24,7 +25,11 @@ describe("users routes", () => {
     const deleteUser = new DeleteUser(repo);
     const getUserById = new GetUserById(repo);
     const updateUser = new UpdateUser(repo);
-    return buildServer(config, { createUser, deleteUser, getUserById, updateUser });
+    return buildServer(
+      config,
+      { createUser, deleteUser, getUserById, updateUser },
+      buildTestLogger()
+    );
   };
 
   it("creates user without sub", async () => {

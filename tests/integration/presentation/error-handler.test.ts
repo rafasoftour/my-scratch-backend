@@ -1,7 +1,10 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { CreateUser } from "../../../src/application/users/CreateUser.js";
+import { DeleteUser } from "../../../src/application/users/DeleteUser.js";
 import { GetUserById } from "../../../src/application/users/GetUserById.js";
+import { UpdateUser } from "../../../src/application/users/UpdateUser.js";
 import { buildServer } from "../../../src/presentation/http/server.js";
+import { buildTestLogger } from "../../helpers/buildTestLogger.js";
 import { InMemoryUserRepository } from "../../helpers/fakes/InMemoryUserRepository.js";
 
 describe("error handler", () => {
@@ -27,8 +30,14 @@ describe("error handler", () => {
   it("returns 404 with standard payload", async () => {
     const repo = new InMemoryUserRepository();
     const createUser = new CreateUser(repo);
+    const deleteUser = new DeleteUser(repo);
     const getUserById = new GetUserById(repo);
-    server = await buildServer(config, { createUser, getUserById });
+    const updateUser = new UpdateUser(repo);
+    server = await buildServer(
+      config,
+      { createUser, deleteUser, getUserById, updateUser },
+      buildTestLogger()
+    );
 
     const response = await server.inject({
       method: "GET",
@@ -48,8 +57,14 @@ describe("error handler", () => {
   it("returns 500 with standard payload", async () => {
     const repo = new InMemoryUserRepository();
     const createUser = new CreateUser(repo);
+    const deleteUser = new DeleteUser(repo);
     const getUserById = new GetUserById(repo);
-    server = await buildServer(config, { createUser, getUserById });
+    const updateUser = new UpdateUser(repo);
+    server = await buildServer(
+      config,
+      { createUser, deleteUser, getUserById, updateUser },
+      buildTestLogger()
+    );
 
     await server.register(
       async (instance) => {
