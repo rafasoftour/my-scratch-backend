@@ -28,6 +28,7 @@ export const buildServer = async (
 ) => {
   const server = Fastify({
     loggerInstance: logger,
+    disableRequestLogging: false,
     requestIdHeader: "x-request-id",
     genReqId: () => randomUUID()
   });

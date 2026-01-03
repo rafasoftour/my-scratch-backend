@@ -1,5 +1,18 @@
 import { z } from "zod";
 
+const parseBoolean = (value: unknown) => {
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (["true", "1", "yes"].includes(normalized)) {
+      return true;
+    }
+    if (["false", "0", "no"].includes(normalized)) {
+      return false;
+    }
+  }
+  return value;
+};
+
 export const configSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]),
   LOG_LEVEL: z.string().min(1),
@@ -10,11 +23,11 @@ export const configSchema = z.object({
   MONGO_OPTIONS: z.string().min(1),
   OIDC_ISSUER: z.string().url(),
   OIDC_AUDIENCE: z.string().min(1),
-  GRAYLOG_ENABLED: z.coerce.boolean().default(false),
+  GRAYLOG_ENABLED: z.preprocess(parseBoolean, z.boolean()).default(false),
   GRAYLOG_HOSTNAME: z.string().min(1).optional(),
   GRAYLOG_HOST: z.string().min(1).optional(),
   GRAYLOG_PORT: z.coerce.number().optional(),
-  GRAYLOG_USESSL: z.coerce.boolean().default(false),
+  GRAYLOG_USESSL: z.preprocess(parseBoolean, z.boolean()).default(false),
   VIRTUALHOST: z.preprocess(
     (value) =>
       typeof value === "string" ? value.replace(/^\/+|\/+$/g, "") : value,
