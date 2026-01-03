@@ -1,0 +1,32 @@
+{
+  "name": "my-scratch-backend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npm run dev:dist",
+    "dev:dist": "npm run build && node -e \"process.env.NODE_ENV='development'; import('./dist/src/bootstrap/main.js')\"",
+    "dev:watch:build": "tsc -w",
+    "dev:watch:run": "node --watch dist/src/bootstrap/main.js",
+    "build": "tsc",
+    "test": "vitest --run",
+    "test:unit": "vitest --run tests/unit",
+    "test:integration": "vitest --run tests/integration",
+    "test:e2e": "vitest --run tests/e2e",
+    "test:watch": "vitest --watch",
+    "start": "node dist/src/bootstrap/main.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.0",
+    "fastify": "^5.6.2",
+    "mongoose": "^9.1.1",
+    "pino": "^10.1.0",
+    "pino-gelf": "^3.0.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "mongodb-memory-server": "^11.0.1",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  }
+}

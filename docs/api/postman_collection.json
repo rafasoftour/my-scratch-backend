@@ -1,0 +1,400 @@
+{
+  "info": {
+    "name": "my-scratch-backend",
+    "_postman_id": "9b9c6f10-1a4b-4f0a-9c3c-7b50c7f9a9d0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "00 - Meta",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "x-request-id",
+                "value": "{{requestId}}"
+              }
+            ],
+            "url": "{{baseUrl}}/{{virtualhost}}/health",
+            "description": "Health check."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set(",
+                  "  \"lastRequestId\",",
+                  "  pm.response.headers.get(\"x-request-id\") || \"\"",
+                  ");"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "10 - Users (CRUD)",
+      "item": [
+        {
+          "name": "POST Create user (no sub)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-request-id",
+                "value": "{{requestId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayName\": \"Alice\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/{{virtualhost}}/users",
+            "description": "Create user without sub. Saves userId as collection variable."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "pm.test(\"id is present\", function () {",
+                  "  pm.expect(body.id).to.be.ok;",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set(\"userId\", body.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST Create user (with sub)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-request-id",
+                "value": "{{requestId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayName\": \"Bob\",\n  \"sub\": \"oidc-sub-1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/{{virtualhost}}/users",
+            "description": "Create user with sub."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "pm.test(\"id is present\", function () {",
+                  "  pm.expect(body.id).to.be.ok;",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set(\"userId\", body.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Get user by id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "x-request-id",
+                "value": "{{requestId}}"
+              }
+            ],
+            "url": "{{baseUrl}}/{{virtualhost}}/users/{{userId}}",
+            "description": "Get user by id using collection variable userId."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "pm.test(\"id matches\", function () {",
+                  "  pm.expect(body.id).to.eql(pm.collectionVariables.get(\"userId\"));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH Update user",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-request-id",
+                "value": "{{requestId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayName\": \"Alice Updated\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/{{virtualhost}}/users/{{userId}}",
+            "description": "Update user displayName."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "pm.test(\"displayName updated\", function () {",
+                  "  pm.expect(body.displayName).to.eql(\"Alice Updated\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE Soft delete user",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "x-request-id",
+                "value": "{{requestId}}"
+              }
+            ],
+            "url": "{{baseUrl}}/{{virtualhost}}/users/{{userId}}",
+            "description": "Soft delete user (sets isActive=false)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 204\", function () {",
+                  "  pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "NEG-409 Create user conflict",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-request-id",
+                "value": "{{requestId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayName\": \"Conflict\",\n  \"sub\": \"oidc-sub-1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/{{virtualhost}}/users",
+            "description": "Creates a user with sub=oidc-sub-1 and tries to create it again."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.sendRequest({",
+                  "  url: pm.collectionVariables.get(\"baseUrl\") + \"/\" + pm.collectionVariables.get(\"virtualhost\") + \"/users\",",
+                  "  method: \"POST\",",
+                  "  header: {",
+                  "    \"Accept\": \"application/json\",",
+                  "    \"Content-Type\": \"application/json\"",
+                  "  },",
+                  "  body: {",
+                  "    mode: \"raw\",",
+                  "    raw: JSON.stringify({ displayName: \"Conflict\", sub: \"oidc-sub-1\" })",
+                  "  }",
+                  "}, function () {});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 409\", function () {",
+                  "  pm.response.to.have.status(409);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "pm.test(\"error code\", function () {",
+                  "  pm.expect(body.error.code).to.eql(\"USER_ALREADY_EXISTS\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "NEG-404 Get missing user",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "x-request-id",
+                "value": "{{requestId}}"
+              }
+            ],
+            "url": "{{baseUrl}}/{{virtualhost}}/users/00000000-0000-0000-0000-000000000000",
+            "description": "Fetches a missing user."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 404\", function () {",
+                  "  pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "pm.test(\"error code\", function () {",
+                  "  pm.expect(body.error.code).to.eql(\"USER_NOT_FOUND\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "virtualhost",
+      "value": "api"
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "requestId",
+      "value": ""
+    },
+    {
+      "key": "lastRequestId",
+      "value": ""
+    }
+  ]
+}
