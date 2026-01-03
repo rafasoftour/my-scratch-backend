@@ -58,6 +58,8 @@ export const createLogger = (config: LoggerConfig): Logger => {
     const gelfOptions = {
       host: config.GRAYLOG_HOST,
       port: config.GRAYLOG_PORT,
+      maxChunkSize: 1420,
+      customKeys: [],
       protocol: "udp",
     };
 

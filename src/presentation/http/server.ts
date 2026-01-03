@@ -8,7 +8,7 @@ import type { CreateUser } from "../../application/users/CreateUser.js";
 import type { DeleteUser } from "../../application/users/DeleteUser.js";
 import type { GetUserById } from "../../application/users/GetUserById.js";
 import type { UpdateUser } from "../../application/users/UpdateUser.js";
-import type { Logger } from "pino";
+import type { FastifyBaseLogger } from "fastify";
 
 type ServerConfig = {
   VIRTUALHOST: string;
@@ -24,7 +24,7 @@ type ServerDeps = {
 export const buildServer = async (
   config: ServerConfig,
   deps: ServerDeps,
-  logger: Logger
+  logger: FastifyBaseLogger
 ) => {
   const server = Fastify({
     loggerInstance: logger,

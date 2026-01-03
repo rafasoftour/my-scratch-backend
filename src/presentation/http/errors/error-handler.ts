@@ -2,6 +2,7 @@ import {
   UserAlreadyExistsError,
   UserNotFoundError
 } from "../../../application/users/errors.js";
+import { InvalidUserIdError } from "../../../domain/users/errors.js";
 import type { FastifyError, FastifyReply, FastifyRequest } from "fastify";
 
 const sendError = (
@@ -42,6 +43,11 @@ export const errorHandler = (
 
   if (error instanceof UserNotFoundError) {
     sendError(reply, 404, "USER_NOT_FOUND", error.message);
+    return;
+  }
+
+  if (error instanceof InvalidUserIdError) {
+    sendError(reply, 404, "USER_NOT_FOUND", "User not found");
     return;
   }
 
