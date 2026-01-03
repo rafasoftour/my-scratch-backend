@@ -350,8 +350,8 @@
                 "value": "{{requestId}}"
               }
             ],
-            "url": "{{baseUrl}}/{{virtualhost}}/users/00000000-0000-0000-0000-000000000000",
-            "description": "Fetches a missing user."
+            "url": "{{baseUrl}}/{{virtualhost}}/users/550e8400-e29b-41d4-a716-446655440099",
+            "description": "Fetches a missing user (valid UUID)."
           },
           "event": [
             {
