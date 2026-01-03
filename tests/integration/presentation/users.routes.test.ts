@@ -240,4 +240,69 @@ describe("users routes", () => {
       await server.close();
     }
   });
+
+  it("returns 400 when creating user with empty body", async () => {
+    const server = await buildTestServer();
+    try {
+      const response = await server.inject({
+        method: "POST",
+        url: "/api/users",
+        payload: {}
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.json()).toEqual({
+        error: {
+          statusCode: 400,
+          code: "VALIDATION_ERROR",
+          message: "Validation Error"
+        }
+      });
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("returns 400 when patch body is empty", async () => {
+    const server = await buildTestServer();
+    try {
+      const response = await server.inject({
+        method: "PATCH",
+        url: "/api/users/550e8400-e29b-41d4-a716-446655440101",
+        payload: {}
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.json()).toEqual({
+        error: {
+          statusCode: 400,
+          code: "VALIDATION_ERROR",
+          message: "Validation Error"
+        }
+      });
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("returns 400 when user id is not a uuid", async () => {
+    const server = await buildTestServer();
+    try {
+      const response = await server.inject({
+        method: "GET",
+        url: "/api/users/not-a-uuid"
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.json()).toEqual({
+        error: {
+          statusCode: 400,
+          code: "VALIDATION_ERROR",
+          message: "Validation Error"
+        }
+      });
+    } finally {
+      await server.close();
+    }
+  });
 });
