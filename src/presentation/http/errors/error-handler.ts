@@ -41,6 +41,10 @@ export const errorHandler = (
     error.statusCode === 400 &&
     (anyErr.validation || anyErr.code === "FST_ERR_VALIDATION");
   if (isValidationError) {
+    reply.log.warn(
+      { validation: anyErr.validation, message: error.message },
+      "Validation failed"
+    );
     sendError(reply, 400, "VALIDATION_ERROR", "Validation Error");
     return;
   }
