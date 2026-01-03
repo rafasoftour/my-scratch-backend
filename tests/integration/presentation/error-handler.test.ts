@@ -16,8 +16,12 @@ describe("error handler", () => {
     MONGO_URI: "mongodb://dummy",
     OIDC_ISSUER: "https://issuer.example.com",
     OIDC_AUDIENCE: "aud",
+    HELMET_ENABLED: false,
+    CORS_ENABLED: false,
+    CORS_ORIGINS: "",
+    CORS_ALLOW_CREDENTIALS: false,
     VIRTUALHOST: "api"
-  };
+  } as const;
 
   let server: Awaited<ReturnType<typeof buildServer>>;
 

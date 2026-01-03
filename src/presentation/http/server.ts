@@ -2,6 +2,8 @@ import { randomUUID } from "node:crypto";
 import Fastify from "fastify";
 import { errorHandler, notFoundHandler } from "./errors/error-handler.js";
 import { registerRequestLogger } from "./plugins/request-logger.js";
+import { registerCors } from "./plugins/cors.js";
+import { registerHelmet } from "./plugins/helmet.js";
 import { registerHealthRoutes } from "./routes/health.routes.js";
 import { registerUsersRoutes } from "./routes/users.routes.js";
 import type { CreateUser } from "../../application/users/CreateUser.js";
@@ -12,6 +14,11 @@ import type { FastifyBaseLogger } from "fastify";
 
 type ServerConfig = {
   VIRTUALHOST: string;
+  NODE_ENV: "development" | "production" | "test";
+  HELMET_ENABLED: boolean;
+  CORS_ENABLED: boolean;
+  CORS_ORIGINS: string;
+  CORS_ALLOW_CREDENTIALS: boolean;
 };
 
 type ServerDeps = {
@@ -34,6 +41,8 @@ export const buildServer = async (
   });
 
   await registerRequestLogger(server);
+  await registerHelmet(server, config);
+  await registerCors(server, config);
   server.setNotFoundHandler(notFoundHandler);
   server.setErrorHandler(errorHandler);
 

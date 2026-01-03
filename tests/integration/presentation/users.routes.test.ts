@@ -16,8 +16,12 @@ describe("users routes", () => {
     MONGO_URI: "mongodb://dummy",
     OIDC_ISSUER: "https://issuer.example.com",
     OIDC_AUDIENCE: "aud",
+    HELMET_ENABLED: false,
+    CORS_ENABLED: false,
+    CORS_ORIGINS: "",
+    CORS_ALLOW_CREDENTIALS: false,
     VIRTUALHOST: "api"
-  };
+  } as const;
 
   const buildTestServer = async () => {
     const repo = new InMemoryUserRepository();
