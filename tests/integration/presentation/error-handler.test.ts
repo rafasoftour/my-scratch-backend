@@ -5,6 +5,7 @@ import { GetUserById } from "../../../src/application/users/GetUserById.js";
 import { UpdateUser } from "../../../src/application/users/UpdateUser.js";
 import { buildServer } from "../../../src/presentation/http/server.js";
 import { buildTestLogger } from "../../helpers/buildTestLogger.js";
+import { buildTestVerifier } from "../../helpers/buildTestVerifier.js";
 import { InMemoryUserRepository } from "../../helpers/fakes/InMemoryUserRepository.js";
 
 describe("error handler", () => {
@@ -37,9 +38,10 @@ describe("error handler", () => {
     const deleteUser = new DeleteUser(repo);
     const getUserById = new GetUserById(repo);
     const updateUser = new UpdateUser(repo);
+    const verifier = buildTestVerifier();
     server = await buildServer(
       config,
-      { createUser, deleteUser, getUserById, updateUser },
+      { createUser, deleteUser, getUserById, updateUser, verifier },
       buildTestLogger()
     );
 
@@ -64,9 +66,10 @@ describe("error handler", () => {
     const deleteUser = new DeleteUser(repo);
     const getUserById = new GetUserById(repo);
     const updateUser = new UpdateUser(repo);
+    const verifier = buildTestVerifier();
     server = await buildServer(
       config,
-      { createUser, deleteUser, getUserById, updateUser },
+      { createUser, deleteUser, getUserById, updateUser, verifier },
       buildTestLogger()
     );
 

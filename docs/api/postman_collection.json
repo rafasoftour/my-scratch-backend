@@ -43,6 +43,42 @@
               }
             }
           ]
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/{{virtualhost}}/me",
+            "description": "Get current user (requires Bearer token)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "pm.test(\"sub is present\", function () {",
+                  "  pm.expect(body.sub).to.be.ok;",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -394,6 +430,10 @@
     },
     {
       "key": "lastRequestId",
+      "value": ""
+    },
+    {
+      "key": "accessToken",
       "value": ""
     }
   ]

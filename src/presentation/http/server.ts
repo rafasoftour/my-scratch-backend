@@ -1,10 +1,12 @@
 import { randomUUID } from "node:crypto";
 import Fastify from "fastify";
 import { errorHandler, notFoundHandler } from "./errors/error-handler.js";
+import { registerAuth } from "./plugins/auth.js";
 import { registerRequestLogger } from "./plugins/request-logger.js";
 import { registerCors } from "./plugins/cors.js";
 import { registerHelmet } from "./plugins/helmet.js";
 import { registerHealthRoutes } from "./routes/health.routes.js";
+import { registerMeRoutes } from "./routes/me.routes.js";
 import { registerUsersRoutes } from "./routes/users.routes.js";
 import type { CreateUser } from "../../application/users/CreateUser.js";
 import type { DeleteUser } from "../../application/users/DeleteUser.js";
@@ -26,6 +28,9 @@ type ServerDeps = {
   deleteUser: DeleteUser;
   getUserById: GetUserById;
   updateUser: UpdateUser;
+  verifier: {
+    verify(token: string): Promise<{ sub: string; claims: Record<string, unknown> }>;
+  };
 };
 
 export const buildServer = async (
@@ -43,11 +48,17 @@ export const buildServer = async (
   await registerRequestLogger(server);
   await registerHelmet(server, config);
   await registerCors(server, config);
+  await registerAuth(server, { verifier: deps.verifier });
   server.setNotFoundHandler(notFoundHandler);
   server.setErrorHandler(errorHandler);
 
   await server.register(registerHealthRoutes, {
     prefix: `/${config.VIRTUALHOST}`
+  });
+
+  await server.register(registerMeRoutes, {
+    prefix: `/${config.VIRTUALHOST}/me`,
+    authenticate: server.authenticate
   });
 
   await server.register(registerUsersRoutes, {

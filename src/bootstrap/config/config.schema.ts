@@ -23,6 +23,7 @@ export const configSchema = z.object({
   MONGO_OPTIONS: z.string().min(1),
   OIDC_ISSUER: z.string().url(),
   OIDC_AUDIENCE: z.string().min(1),
+  OIDC_JWKS_URL: z.string().url(),
   GRAYLOG_ENABLED: z.preprocess(parseBoolean, z.boolean()).default(false),
   GRAYLOG_HOSTNAME: z.string().min(1).optional(),
   GRAYLOG_HOST: z.string().min(1).optional(),

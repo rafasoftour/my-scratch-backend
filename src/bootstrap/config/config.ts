@@ -9,6 +9,7 @@ const baseRequiredKeys: Array<keyof Config> = [
   "MONGO_OPTIONS",
   "OIDC_ISSUER",
   "OIDC_AUDIENCE",
+  "OIDC_JWKS_URL",
   "VIRTUALHOST"
 ];
 

@@ -5,6 +5,7 @@ import { GetUserById } from "../../../src/application/users/GetUserById.js";
 import { UpdateUser } from "../../../src/application/users/UpdateUser.js";
 import { buildServer } from "../../../src/presentation/http/server.js";
 import { buildTestLogger } from "../../helpers/buildTestLogger.js";
+import { buildTestVerifier } from "../../helpers/buildTestVerifier.js";
 import { InMemoryUserRepository } from "../../helpers/fakes/InMemoryUserRepository.js";
 
 describe("security headers", () => {
@@ -29,10 +30,11 @@ describe("security headers", () => {
     const deleteUser = new DeleteUser(repo);
     const getUserById = new GetUserById(repo);
     const updateUser = new UpdateUser(repo);
+    const verifier = buildTestVerifier();
     const config = { ...baseConfig, ...configOverrides };
     return buildServer(
       config,
-      { createUser, deleteUser, getUserById, updateUser },
+      { createUser, deleteUser, getUserById, updateUser, verifier },
       buildTestLogger()
     );
   };
