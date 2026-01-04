@@ -34,6 +34,7 @@ describe("bootstrap config", () => {
       MONGO_OPTIONS: "directConnection=true",
       OIDC_ISSUER: "https://wso2.example.com/oauth2/token",
       OIDC_AUDIENCE: "my-audience",
+      OIDC_JWKS_URL: "https://wso2.example.com/oauth2/jwks",
       VIRTUALHOST: "api"
     });
 
@@ -50,6 +51,7 @@ describe("bootstrap config", () => {
       PORT: "3000",
       OIDC_ISSUER: "https://wso2.example.com/oauth2/token",
       OIDC_AUDIENCE: "my-audience",
+      OIDC_JWKS_URL: "https://wso2.example.com/oauth2/jwks",
       MONGO_DB_NAME: "mydb",
       MONGO_OPTIONS: "directConnection=true",
       VIRTUALHOST: "api"
@@ -68,6 +70,7 @@ describe("bootstrap config", () => {
       MONGO_OPTIONS: "directConnection=true",
       OIDC_ISSUER: "https://wso2.example.com/oauth2/token",
       OIDC_AUDIENCE: "my-audience",
+      OIDC_JWKS_URL: "https://wso2.example.com/oauth2/jwks",
       VIRTUALHOST: "api"
     });
 

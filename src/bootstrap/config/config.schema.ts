@@ -1,5 +1,18 @@
 import { z } from "zod";
 
+const parseBoolean = (value: unknown) => {
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (["true", "1", "yes"].includes(normalized)) {
+      return true;
+    }
+    if (["false", "0", "no"].includes(normalized)) {
+      return false;
+    }
+  }
+  return value;
+};
+
 export const configSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]),
   LOG_LEVEL: z.string().min(1),
@@ -10,11 +23,16 @@ export const configSchema = z.object({
   MONGO_OPTIONS: z.string().min(1),
   OIDC_ISSUER: z.string().url(),
   OIDC_AUDIENCE: z.string().min(1),
-  GRAYLOG_ENABLED: z.coerce.boolean().default(false),
+  OIDC_JWKS_URL: z.string().url(),
+  GRAYLOG_ENABLED: z.preprocess(parseBoolean, z.boolean()).default(false),
   GRAYLOG_HOSTNAME: z.string().min(1).optional(),
   GRAYLOG_HOST: z.string().min(1).optional(),
   GRAYLOG_PORT: z.coerce.number().optional(),
-  GRAYLOG_USESSL: z.coerce.boolean().default(false),
+  GRAYLOG_USESSL: z.preprocess(parseBoolean, z.boolean()).default(false),
+  HELMET_ENABLED: z.preprocess(parseBoolean, z.boolean()).default(true),
+  CORS_ENABLED: z.preprocess(parseBoolean, z.boolean()).default(true),
+  CORS_ORIGINS: z.string().default(""),
+  CORS_ALLOW_CREDENTIALS: z.preprocess(parseBoolean, z.boolean()).default(false),
   VIRTUALHOST: z.preprocess(
     (value) =>
       typeof value === "string" ? value.replace(/^\/+|\/+$/g, "") : value,
@@ -51,6 +69,16 @@ export const configSchema = z.object({
       path: ["GRAYLOG_PORT"],
       message: "GRAYLOG_PORT is required when GRAYLOG_ENABLED is true"
     });
+  }
+
+  if (data.NODE_ENV === "production" && data.CORS_ENABLED) {
+    if (data.CORS_ORIGINS.trim() === "") {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["CORS_ORIGINS"],
+        message: "CORS_ORIGINS is required when CORS_ENABLED is true in production"
+      });
+    }
   }
 });
 

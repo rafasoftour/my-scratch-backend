@@ -4,6 +4,7 @@ import { CreateUser } from "../application/users/CreateUser.js";
 import { DeleteUser } from "../application/users/DeleteUser.js";
 import { GetUserById } from "../application/users/GetUserById.js";
 import { UpdateUser } from "../application/users/UpdateUser.js";
+import { OidcTokenVerifier } from "../infrastructure/auth/OidcTokenVerifier.js";
 import { createLogger } from "../infrastructure/logging/createLogger.js";
 import { connectMongo } from "../infrastructure/persistence/mongoose/connection.js";
 import { MongoUserRepository } from "../infrastructure/persistence/mongoose/MongoUserRepository.js";
@@ -18,13 +19,19 @@ try {
   const deleteUser = new DeleteUser(userRepository);
   const getUserById = new GetUserById(userRepository);
   const updateUser = new UpdateUser(userRepository);
+  const verifier = new OidcTokenVerifier({
+    issuer: config.OIDC_ISSUER,
+    audience: config.OIDC_AUDIENCE,
+    jwksUrl: config.OIDC_JWKS_URL
+  });
   const server = await buildServer(
     config,
     {
       createUser,
       deleteUser,
       getUserById,
-      updateUser
+      updateUser,
+      verifier
     },
     logger
   );

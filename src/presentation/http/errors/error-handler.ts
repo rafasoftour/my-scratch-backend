@@ -36,6 +36,19 @@ export const errorHandler = (
     return;
   }
 
+  const anyErr = error as unknown as { validation?: unknown; code?: string };
+  const isValidationError =
+    error.statusCode === 400 &&
+    (anyErr.validation || anyErr.code === "FST_ERR_VALIDATION");
+  if (isValidationError) {
+    reply.log.warn(
+      { validation: anyErr.validation, message: error.message },
+      "Validation failed"
+    );
+    sendError(reply, 400, "VALIDATION_ERROR", "Validation Error");
+    return;
+  }
+
   if (error instanceof UserAlreadyExistsError) {
     sendError(reply, 409, "USER_ALREADY_EXISTS", error.message);
     return;

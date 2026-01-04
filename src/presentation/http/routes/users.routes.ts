@@ -4,6 +4,39 @@ import type { DeleteUser } from "../../../application/users/DeleteUser.js";
 import type { GetUserById } from "../../../application/users/GetUserById.js";
 import type { UpdateUser } from "../../../application/users/UpdateUser.js";
 
+const userIdParamsSchema = {
+  type: "object",
+  required: ["id"],
+  additionalProperties: false,
+  properties: {
+    id: {
+      type: "string",
+      pattern:
+        "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+    }
+  }
+} as const;
+
+const createUserBodySchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["displayName"],
+  properties: {
+    displayName: { type: "string", minLength: 1 },
+    sub: { type: "string", minLength: 1 }
+  }
+} as const;
+
+const updateUserBodySchema = {
+  type: "object",
+  additionalProperties: false,
+  minProperties: 1,
+  properties: {
+    displayName: { type: "string", minLength: 1 },
+    isActive: { type: "boolean" }
+  }
+} as const;
+
 type UsersRoutesOptions = {
   createUser: CreateUser;
   deleteUser: DeleteUser;
@@ -15,55 +48,71 @@ export const registerUsersRoutes = async (
   server: FastifyInstance,
   options: UsersRoutesOptions
 ) => {
-  server.post("/", async (request, reply) => {
-    const body = request.body as { displayName?: string; sub?: string };
-    const user = await options.createUser.execute({
-      displayName: body.displayName ?? "",
-      sub: body.sub
-    });
+  server.post(
+    "/",
+    { schema: { body: createUserBodySchema } },
+    async (request, reply) => {
+      const body = request.body as { displayName?: string; sub?: string };
+      const user = await options.createUser.execute({
+        displayName: body.displayName ?? "",
+        sub: body.sub
+      });
 
-    reply.status(201).send({
-      id: user.id.toString(),
-      displayName: user.displayName,
-      sub: user.sub?.toString(),
-      isActive: user.isActive
-    });
-  });
+      reply.status(201).send({
+        id: user.id.toString(),
+        displayName: user.displayName,
+        sub: user.sub?.toString(),
+        isActive: user.isActive
+      });
+    }
+  );
 
-  server.get("/:id", async (request, reply) => {
-    const params = request.params as { id?: string };
-    const user = await options.getUserById.execute({
-      id: params.id ?? ""
-    });
+  server.get(
+    "/:id",
+    { schema: { params: userIdParamsSchema } },
+    async (request, reply) => {
+      const params = request.params as { id?: string };
+      const user = await options.getUserById.execute({
+        id: params.id ?? ""
+      });
 
-    reply.status(200).send({
-      id: user.id.toString(),
-      displayName: user.displayName,
-      sub: user.sub?.toString(),
-      isActive: user.isActive
-    });
-  });
+      reply.status(200).send({
+        id: user.id.toString(),
+        displayName: user.displayName,
+        sub: user.sub?.toString(),
+        isActive: user.isActive
+      });
+    }
+  );
 
-  server.patch("/:id", async (request, reply) => {
-    const params = request.params as { id?: string };
-    const body = request.body as { displayName?: string; isActive?: boolean };
-    const user = await options.updateUser.execute({
-      id: params.id ?? "",
-      displayName: body.displayName,
-      isActive: body.isActive
-    });
+  server.patch(
+    "/:id",
+    { schema: { params: userIdParamsSchema, body: updateUserBodySchema } },
+    async (request, reply) => {
+      const params = request.params as { id?: string };
+      const body = request.body as { displayName?: string; isActive?: boolean };
+      const user = await options.updateUser.execute({
+        id: params.id ?? "",
+        displayName: body.displayName,
+        isActive: body.isActive
+      });
 
-    reply.status(200).send({
-      id: user.id.toString(),
-      displayName: user.displayName,
-      sub: user.sub?.toString(),
-      isActive: user.isActive
-    });
-  });
+      reply.status(200).send({
+        id: user.id.toString(),
+        displayName: user.displayName,
+        sub: user.sub?.toString(),
+        isActive: user.isActive
+      });
+    }
+  );
 
-  server.delete("/:id", async (request, reply) => {
-    const params = request.params as { id?: string };
-    await options.deleteUser.execute({ id: params.id ?? "" });
-    reply.status(204).send();
-  });
+  server.delete(
+    "/:id",
+    { schema: { params: userIdParamsSchema } },
+    async (request, reply) => {
+      const params = request.params as { id?: string };
+      await options.deleteUser.execute({ id: params.id ?? "" });
+      reply.status(204).send();
+    }
+  );
 };

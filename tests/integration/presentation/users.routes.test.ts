@@ -5,6 +5,7 @@ import { GetUserById } from "../../../src/application/users/GetUserById.js";
 import { UpdateUser } from "../../../src/application/users/UpdateUser.js";
 import { buildServer } from "../../../src/presentation/http/server.js";
 import { buildTestLogger } from "../../helpers/buildTestLogger.js";
+import { buildTestVerifier } from "../../helpers/buildTestVerifier.js";
 import { InMemoryUserRepository } from "../../helpers/fakes/InMemoryUserRepository.js";
 
 describe("users routes", () => {
@@ -16,8 +17,12 @@ describe("users routes", () => {
     MONGO_URI: "mongodb://dummy",
     OIDC_ISSUER: "https://issuer.example.com",
     OIDC_AUDIENCE: "aud",
+    HELMET_ENABLED: false,
+    CORS_ENABLED: false,
+    CORS_ORIGINS: "",
+    CORS_ALLOW_CREDENTIALS: false,
     VIRTUALHOST: "api"
-  };
+  } as const;
 
   const buildTestServer = async () => {
     const repo = new InMemoryUserRepository();
@@ -25,9 +30,10 @@ describe("users routes", () => {
     const deleteUser = new DeleteUser(repo);
     const getUserById = new GetUserById(repo);
     const updateUser = new UpdateUser(repo);
+    const verifier = buildTestVerifier();
     return buildServer(
       config,
-      { createUser, deleteUser, getUserById, updateUser },
+      { createUser, deleteUser, getUserById, updateUser, verifier },
       buildTestLogger()
     );
   };
@@ -234,6 +240,71 @@ describe("users routes", () => {
           statusCode: 404,
           code: "USER_NOT_FOUND",
           message: "User not found"
+        }
+      });
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("returns 400 when creating user with empty body", async () => {
+    const server = await buildTestServer();
+    try {
+      const response = await server.inject({
+        method: "POST",
+        url: "/api/users",
+        payload: {}
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.json()).toEqual({
+        error: {
+          statusCode: 400,
+          code: "VALIDATION_ERROR",
+          message: "Validation Error"
+        }
+      });
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("returns 400 when patch body is empty", async () => {
+    const server = await buildTestServer();
+    try {
+      const response = await server.inject({
+        method: "PATCH",
+        url: "/api/users/550e8400-e29b-41d4-a716-446655440101",
+        payload: {}
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.json()).toEqual({
+        error: {
+          statusCode: 400,
+          code: "VALIDATION_ERROR",
+          message: "Validation Error"
+        }
+      });
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("returns 400 when user id is not a uuid", async () => {
+    const server = await buildTestServer();
+    try {
+      const response = await server.inject({
+        method: "GET",
+        url: "/api/users/not-a-uuid"
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.json()).toEqual({
+        error: {
+          statusCode: 400,
+          code: "VALIDATION_ERROR",
+          message: "Validation Error"
         }
       });
     } finally {
